@@ -44,11 +44,13 @@ CUSTOM_APPS = [
     'blog',
     'author',
     'custom_user',
+    'common'
 ]
 
 THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
+    'cacheops',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
@@ -61,6 +63,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'common.localthread_middleware.PopulateLocalsThreadMiddleware',
+    # Custom middleware
+    'common.custom_middleware.CustomMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -160,5 +165,52 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day',
+        'scope': '10000/day',
+    }
+
+}
+
+# Add the following lines to enable Redis caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        # 'LOCATION': 'redis://<user>:<password>@<public endpoint>',
+        'LOCATION': 'redis://default:ko15SyJmLWIffmfrpREQgyjsAcrvPkYG@redis-11193.c281.us-east-1-2.ec2.cloud.redislabs.com:11193',
+    }
+}
+
+# Add the following lines to enable Cacheops with Redis in Django
+CACHEOPS_REDIS = {
+    "host": "redis-11193.c281.us-east-1-2.ec2.cloud.redislabs.com",  # Redis endpoint
+    "port": 11193,  # for redis lab, port is 15014
+    "socket_timeout": 3,  # connection timeout in seconds, optional
+    "password": "ko15SyJmLWIffmfrpREQgyjsAcrvPkYG",
+}
+
+
+# Add the following lines to configure logging in Django
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"verbose": {"format": "%(asctime)s %(process)d %(thread)d %(message)s"}},
+    "loggers": {
+        "django_default": {
+            "handlers": ["django_file"],
+            "level": "INFO",
+            "propogate": True,
+        },
+    },
+    "handlers": {
+        "django_file": {
+            "class": "common.custom_log_handlers.MakeRotatingFileHandler",
+            "filename": os.path.join(BASE_DIR, "logs/django_logs.log"),
+            "maxBytes": 1024 * 1024 * 10,  # 10MB
+            "backupCount": 10,
+            "formatter": "verbose"
+        },
+    },
 }
