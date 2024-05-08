@@ -9,4 +9,7 @@ urlpatterns = [
     path('unpaginated/', views.get_blog_without_pagination),
     path('paginated/', views.get_blog_with_pagination),
     path('publish/', views.publish_blog),
+    path('verify/', views.verify_blog),
+    path('hello-world/', views.hello_world, name='hello_world'),
+    path('hello-world-2/', views.hello_world_2, name='hello_world_2'),
 ]

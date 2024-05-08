@@ -1,17 +1,23 @@
 from django.http import HttpResponse
 
 from cacheops import cached
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import authentication_classes
+from rest_framework.decorators import permission_classes
 
 
-from blog import public
+from blog.tasks import send_email_to_followers
 from blog.models import Blog
 from blog.serializers import BlogSerializer
 from common.logging_util import log_event
+from config.celery import debug_task
 
 
 def update_blog_title(request):
@@ -121,9 +127,31 @@ def get_blog_with_pagination(request):
     return Response({'blogs': blogs_data})
 
 
-# Publish a blog to test the signals.
 @api_view(['GET'])
 def publish_blog(request):
-    blog_id = request.GET.get('id')
-    public.publish_blog(blog_id)
+    blog_id = request.GET.get('blog_id')
+    author_id = request.GET.get('author_id')
+    print(f"Publishing blog {blog_id}")
+    send_email_to_followers.delay(author_id, blog_id)
     return Response({'status': 'success'})
+
+
+@api_view(['GET'])
+def verify_blog(request):
+    verify_word = request.GET.get('verify_word')
+    debug_task.delay(f"Celery Task verification: {verify_word}")
+    return Response({'status': 'success'})
+
+
+@api_view(['GET'])
+def hello_world(request):
+    resp = {"msg": "hello world!"}
+    return Response(data=resp, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def hello_world_2(request):
+    resp = {"msg": "hello world!"}
+    return Response(data=resp, status=status.HTTP_200_OK)

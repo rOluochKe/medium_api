@@ -97,6 +97,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'TEST': {
+            'NAME': 'mytestdatabase',
+        }
     }
 }
 
@@ -109,6 +112,9 @@ if os.getenv('DB_NAME') and os.getenv('DB_USER') and os.getenv('DB_PASSWORD') an
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
+        'TEST': {
+            'NAME': 'mytestdatabase',
+        }
     }
 
 # Password validation
@@ -214,3 +220,13 @@ LOGGING = {
         },
     },
 }
+
+# Add the following lines to enable Celery in Django
+REDIS_CONNECTION_STRING = 'redis://default:ko15SyJmLWIffmfrpREQgyjsAcrvPkYG@redis-11193.c281.us-east-1-2.ec2.cloud.redislabs.com:11193'
+# Use redis lab credentials
+
+CELERY_BROKER_URL = f"{REDIS_CONNECTION_STRING}"
+CELERY_RESULT_BACKEND = f"{REDIS_CONNECTION_STRING}"
+
+
+TEST_RUNNER = 'common.custom_runner.CustomRunner'

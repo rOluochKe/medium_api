@@ -6,4 +6,5 @@ class AuthorConfig(AppConfig):
     name = 'author'
 
     def ready(self):
+        # pass
         from author import receivers

@@ -14,9 +14,11 @@ def get_current_user():
     if request:
         return getattr(request, "user", None)
 
+
 def get_txid():
     """Returns the current transaction id, if exist, otherwise returns None."""
     return getattr(_thread_locals, "txid", None)
+
 
 def get_current_user_id():
     """Returns authenticated user's id for this thread, if not present returns 0."""

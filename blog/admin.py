@@ -6,12 +6,12 @@ from django.contrib.admin.models import LogEntry
 from blog import models
 
 
-
 class BlogAdmin(admin.ModelAdmin):
     pass
 
 
-admin.site.register(models.Blog, BlogAdmin)  # Uncomment this line to use BlogAdmin
+# Uncomment this line to use BlogAdmin
+admin.site.register(models.Blog, BlogAdmin)
 
 
 #############################

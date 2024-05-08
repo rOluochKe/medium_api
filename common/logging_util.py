@@ -4,6 +4,7 @@ import logging
 from common.localthread_middleware import get_current_user_id
 from common.localthread_middleware import get_txid
 
+
 def log_event(event_name, log_data, logging_module="django_default", level="INFO"):
     """
     :param event_name: Event name which you are logging
