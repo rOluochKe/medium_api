@@ -26,7 +26,9 @@ SECRET_KEY = 'django-insecure-zr1+%_n=k##n9np23kqne(&q8e#101ausa-*89dhwvlj7=*io3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    os.environ.get('DJANGO_ALLOWED_HOSTS')
+]
 
 
 # Application definition
@@ -51,6 +53,15 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'cacheops',
+    'health_check',                             # required
+    'health_check.db',                          # stock Django health checkers
+    'health_check.cache',
+    'health_check.storage',
+    'health_check.contrib.migrations',
+    'health_check.contrib.celery',              # requires celery
+    'health_check.contrib.celery_ping',         # requires celery
+    # disk and memory utilization; requires psutil
+    'health_check.contrib.psutil',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
@@ -63,8 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'common.localthread_middleware.PopulateLocalsThreadMiddleware',
-    # Custom middleware
+    # 'common.localthread_middleware.PopulateLocalsThreadMiddleware',
     'common.custom_middleware.CustomMiddleware',
 ]
 
@@ -170,7 +180,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication'
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        # Uncomment the following line to enable authentication for all APIs
+        # 'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
@@ -180,21 +191,23 @@ REST_FRAMEWORK = {
 
 }
 
+REDIS_HOST = os.environ.get('REDIS_HOST')
+REDIS_PORT = os.environ.get('REDIS_PORT')
+
 # Add the following lines to enable Redis caching
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         # 'LOCATION': 'redis://<user>:<password>@<public endpoint>',
-        'LOCATION': 'redis://default:ko15SyJmLWIffmfrpREQgyjsAcrvPkYG@redis-11193.c281.us-east-1-2.ec2.cloud.redislabs.com:11193',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}',
     }
 }
 
 # Add the following lines to enable Cacheops with Redis in Django
 CACHEOPS_REDIS = {
-    "host": "redis-11193.c281.us-east-1-2.ec2.cloud.redislabs.com",  # Redis endpoint
-    "port": 11193,  # for redis lab, port is 15014
+    "host": REDIS_HOST,  # Redis endpoint
+    "port": REDIS_PORT,  # for redis lab, port is 15014
     "socket_timeout": 3,  # connection timeout in seconds, optional
-    "password": "ko15SyJmLWIffmfrpREQgyjsAcrvPkYG",
 }
 
 
@@ -222,11 +235,10 @@ LOGGING = {
 }
 
 # Add the following lines to enable Celery in Django
-REDIS_CONNECTION_STRING = 'redis://default:ko15SyJmLWIffmfrpREQgyjsAcrvPkYG@redis-11193.c281.us-east-1-2.ec2.cloud.redislabs.com:11193'
+REDIS_CONNECTION_STRING = f'redis://{REDIS_HOST}:{REDIS_PORT}'
 # Use redis lab credentials
 
 CELERY_BROKER_URL = f"{REDIS_CONNECTION_STRING}"
 CELERY_RESULT_BACKEND = f"{REDIS_CONNECTION_STRING}"
-
 
 TEST_RUNNER = 'common.custom_runner.CustomRunner'

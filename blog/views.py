@@ -155,3 +155,17 @@ def hello_world(request):
 def hello_world_2(request):
     resp = {"msg": "hello world!"}
     return Response(data=resp, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_blog_by_id(blog_id):
+    try:
+        blog = Blog.objects.get(id=blog_id)
+    except Blog.DoesNotExist:
+        return Response(
+            status=status.HTTP_404_NOT_FOUND,
+            data={'error': 'Blog does not exist',
+                  'error_code': 'BLG0012'}
+        )
+    blog_data = BlogSerializer(blog).data
+    return Response({'blog': blog_data}, status=status.HTTP_200_OK)
